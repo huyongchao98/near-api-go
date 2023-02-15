@@ -147,7 +147,7 @@ func (a *Account) ViewAccessKey(ctx context.Context, pubKey *keys.PublicKey) (*A
 	resp := &viewAccessKeyResp{Permission: &raw}
 
 	// var res AccessKeyView
-	if err := a.config.RPCClient.CallContext(ctx, &resp, "query", req); err != nil {
+	if err := a.config.RPCClient.CallContextWithObjectParame(ctx, &resp, "query", req); err != nil {
 		return nil, fmt.Errorf("calling rpc: %v", util.MapRPCError(err))
 	}
 	if resp.Error != "" {
