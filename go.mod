@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
-	github.com/ethereum/go-ethereum v1.10.6
+	github.com/ethereum/go-ethereum v1.10.26
 	github.com/go-ole/go-ole v1.2.4 // indirect
 	github.com/mr-tron/base58 v1.2.0
 	github.com/near/borsh-go v0.3.0
