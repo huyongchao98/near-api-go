@@ -31,22 +31,38 @@ var (
 // Account provides functions for a single account.
 type Account struct {
 	config    *types.Config
-	accountID string
+	AccountID string
 }
 
 // NewAccount creates a new account.
 func NewAccount(config *types.Config, accountID string) *Account {
 	return &Account{
 		config:    config,
-		accountID: accountID,
+		AccountID: accountID,
 	}
+}
+
+func (a *Account) CreateAccount(publicKey string) error {
+	var res bool
+	args := CreateAccountArgs{
+		PublicKey: publicKey,
+		AccountId: a.AccountID,
+	}
+	err := a.config.RPCClient.Call(&res, "create_account", args)
+	if err != nil {
+		return err
+	}
+	if !res {
+		return fmt.Errorf("failed to create account")
+	}
+	return nil
 }
 
 // ViewState queries the contract state.
 func (a *Account) ViewState(ctx context.Context, opts ...ViewStateOption) (*AccountStateView, error) {
 	req := &itypes.QueryRequest{
 		RequestType:  "view_state",
-		AccountID:    a.accountID,
+		AccountID:    a.AccountID,
 		PrefixBase64: "",
 	}
 	for _, opt := range opts {
@@ -74,7 +90,7 @@ func (a *Account) State(
 ) (*AccountView, error) {
 	req := &itypes.QueryRequest{
 		RequestType: "view_account",
-		AccountID:   a.accountID,
+		AccountID:   a.AccountID,
 		Finality:    "optimistic",
 	}
 	for _, opt := range opts {
@@ -132,7 +148,7 @@ func (a *Account) ViewAccessKey(ctx context.Context, pubKey *keys.PublicKey) (*A
 
 	req := &itypes.QueryRequest{
 		RequestType: "view_access_key",
-		AccountID:   a.accountID,
+		AccountID:   a.AccountID,
 		PublicKey:   pubKeyStr,
 		Finality:    "optimistic",
 	}
@@ -211,21 +227,21 @@ func (a *Account) SignTransaction(
 	nonce := accessKeyView.Nonce + 1
 
 	pk := a.config.Signer.GetPublicKey()
-	var dataArr [32]byte
+	var dataArr []byte
 	copy(dataArr[:], pk.Data)
 
 	t := transaction.Transaction{
-		SignerID: a.accountID,
-		PublicKey: transaction.PublicKey{
-			KeyType: uint8(pk.Type),
-			Data:    dataArr,
+		SignerID: a.AccountID,
+		PublicKey: keys.PublicKey{
+			Type: pk.Type,
+			Data: dataArr,
 		},
 		Nonce:      nonce,
 		ReceiverID: receiverID,
 		BlockHash:  blockHashArr,
 		Actions:    actions,
 	}
-	hash, signedTransaction, err := transaction.SignTransaction(t, a.config.Signer, a.accountID, a.config.NetworkID)
+	hash, signedTransaction, err := transaction.SignTransaction(t, a.config.Signer, a.AccountID, a.config.NetworkID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("signing transaction: %v", err)
 	}
@@ -332,7 +348,7 @@ func (a *Account) FunctionCall(
 // DeployContract deploys contract code to the account.
 func (a *Account) DeployContract(ctx context.Context, code []byte) (*FinalExecutionOutcome, error) {
 	action := transaction.DeployContractAction(code)
-	res, err := a.SignAndSendTransaction(ctx, a.accountID, action)
+	res, err := a.SignAndSendTransaction(ctx, a.AccountID, action)
 	if err != nil {
 		return nil, fmt.Errorf("signing and sending transaction: %v", err)
 	}

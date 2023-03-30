@@ -27,7 +27,7 @@ func NewPublicKeyFromString(str string) (*PublicKey, error) {
 		if err != nil {
 			return nil, fmt.Errorf("decoding key string: %v", err)
 		}
-		return &PublicKey{Type: ED25519, Data: data}, nil
+		return &PublicKey{Type: int(ED25519), Data: data}, nil
 	} else if len(parts) == 2 {
 		keyType, err := stringToKeyType(parts[0])
 		if err != nil {
@@ -37,7 +37,7 @@ func NewPublicKeyFromString(str string) (*PublicKey, error) {
 		if err != nil {
 			return nil, fmt.Errorf("decoding key data: %v", err)
 		}
-		return &PublicKey{Type: keyType, Data: data}, nil
+		return &PublicKey{Type: int(keyType), Data: data}, nil
 	} else {
 		return nil, fmt.Errorf("invalid encoded key format, must be <curve>:<encoded key>")
 	}
@@ -45,13 +45,13 @@ func NewPublicKeyFromString(str string) (*PublicKey, error) {
 
 // PublicKey represents a public key.
 type PublicKey struct {
-	Type KeyType
+	Type int
 	Data []byte
 }
 
 // ToString creates a string representation of the public key of the form <curve>:<base58 encoded key>.
 func (pk *PublicKey) ToString() (string, error) {
-	typeStr, err := keyTypeToString(pk.Type)
+	typeStr, err := keyTypeToString(KeyType(pk.Type))
 	if err != nil {
 		return "", fmt.Errorf("converting key type to string: %v", err)
 	}
@@ -143,7 +143,7 @@ func (k *KeyPairEd25519) Verify(message, signature []byte) bool {
 // GetPublicKey returns the PublicKey corresponding to the KeyPair's private key.
 func (k *KeyPairEd25519) GetPublicKey() PublicKey {
 	return PublicKey{
-		Type: ED25519,
+		Type: int(ED25519),
 		Data: k.privateKey.Public().(ed25519.PublicKey),
 	}
 }

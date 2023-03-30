@@ -145,6 +145,11 @@ func (eo *ExecutionOutcome) GetStatusBasic() (ExecutionStatusBasic, bool) {
 	}
 }
 
+type CreateAccountArgs struct {
+	AccountId string `json:"account_id"`
+	PublicKey string `json:"public_key"`
+}
+
 // ExecutionOutcomeWithID provides the transaction or receipt outcome with and id.
 type ExecutionOutcomeWithID struct {
 	ID      string           `json:"id"`

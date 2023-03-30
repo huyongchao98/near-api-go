@@ -17,7 +17,7 @@ var (
 
 // Signature asdf.
 type Signature struct {
-	KeyType uint8
+	KeyType int
 	Data    [64]byte
 }
 
@@ -30,7 +30,7 @@ type SignedTransaction struct {
 // Transaction asdf.
 type Transaction struct {
 	SignerID   string
-	PublicKey  PublicKey
+	PublicKey  keys.PublicKey
 	Nonce      uint64
 	ReceiverID string
 	BlockHash  [32]byte
@@ -38,10 +38,6 @@ type Transaction struct {
 }
 
 // PublicKey asdf.
-type PublicKey struct {
-	KeyType uint8
-	Data    [32]byte
-}
 
 // AccessKey asdf.
 type AccessKey struct {
@@ -103,18 +99,18 @@ type Transfer struct {
 // Stake sadf.
 type Stake struct {
 	Stake     big.Int
-	PublicKey PublicKey
+	PublicKey keys.PublicKey
 }
 
 // AddKey asdf.
 type AddKey struct {
-	PublicKey PublicKey
+	PublicKey keys.PublicKey
 	AccessKey AccessKey
 }
 
 // DeleteKey asdf.
 type DeleteKey struct {
-	PublicKey PublicKey
+	PublicKey keys.PublicKey
 }
 
 // DeleteAccount asdf.
@@ -189,15 +185,15 @@ func TransferAction(deposit big.Int) Action {
 // StakeAction is a helper to create a Stake action.
 func StakeAction(stake big.Int, publicKey keys.PublicKey) Action {
 	// TODO: make keys.PublicKey the serializable model.
-	var dataArr [32]byte
+	var dataArr []byte
 	copy(dataArr[:], publicKey.Data)
 	return Action{
 		Enum: 4,
 		Stake: Stake{
 			Stake: stake,
-			PublicKey: PublicKey{
-				KeyType: uint8(publicKey.Type),
-				Data:    dataArr,
+			PublicKey: keys.PublicKey{
+				Type: publicKey.Type,
+				Data: dataArr,
 			},
 		},
 	}
@@ -207,14 +203,14 @@ func StakeAction(stake big.Int, publicKey keys.PublicKey) Action {
 func AddKeyAction(publicKey keys.PublicKey, accessKey AccessKey) Action {
 	// TODO: make keys.PublicKey the serializable model.
 	// TODO: better way of specifying AccessKey.
-	var dataArr [32]byte
+	var dataArr []byte
 	copy(dataArr[:], publicKey.Data)
 	return Action{
 		Enum: 5,
 		AddKey: AddKey{
-			PublicKey: PublicKey{
-				KeyType: uint8(publicKey.Type),
-				Data:    dataArr,
+			PublicKey: keys.PublicKey{
+				Type: publicKey.Type,
+				Data: dataArr,
 			},
 			AccessKey: accessKey,
 		},
@@ -224,14 +220,14 @@ func AddKeyAction(publicKey keys.PublicKey, accessKey AccessKey) Action {
 // DeleteKeyAction is a helper to create a DeleteKey action.
 func DeleteKeyAction(publicKey keys.PublicKey) Action {
 	// TODO: make keys.PublicKey the serializable model.
-	var dataArr [32]byte
+	var dataArr []byte
 	copy(dataArr[:], publicKey.Data)
 	return Action{
 		Enum: 6,
 		DeleteKey: DeleteKey{
-			PublicKey: PublicKey{
-				KeyType: uint8(publicKey.Type),
-				Data:    dataArr,
+			PublicKey: keys.PublicKey{
+				Type: publicKey.Type,
+				Data: dataArr,
 			},
 		},
 	}
@@ -250,7 +246,7 @@ func DeleteAccountAction(beneficiaryID string) Action {
 // NewTransaction creates a new Transaction.
 func NewTransaction(
 	signerID string,
-	publicKey PublicKey,
+	publicKey keys.PublicKey,
 	nonce uint64,
 	receiverID string,
 	blockHash []byte,
@@ -289,7 +285,7 @@ func SignTransaction(
 	st := &SignedTransaction{
 		Transaction: transaction,
 		Signature: Signature{
-			KeyType: transaction.PublicKey.KeyType,
+			KeyType: transaction.PublicKey.Type,
 			Data:    data,
 		},
 	}
