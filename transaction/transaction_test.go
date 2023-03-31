@@ -2,7 +2,7 @@
  * @Author: huyongchao huyongchao98@163.com
  * @Date: 2023-02-15 16:14:24
  * @LastEditors: huyongchao huyongchao98@163.com
- * @LastEditTime: 2023-03-30 20:39:35
+ * @LastEditTime: 2023-03-31 08:05:07
  * @FilePath: /NearMPCWallet/near-api-go/transaction/transaction_test.go
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -63,14 +63,16 @@ func TestCreateAccountTransaction(t *testing.T) {
 		[]Action{CreateAccountAction()},
 	)
 
-	hash, st, theErr := SignTransaction(*transaction, keyPair, accountID, networkID)
+	// hash, st, theErr := SignTransaction(*transaction, keyPair, accountID, networkID)
+	hash, _, theErr := SignTransaction(*transaction, keyPair, accountID, networkID)
 	assert.NotNil(t, hash)
 	assert.NoError(t, theErr)
-	jsonRpcRequest := types.JsonRpcRequest{
+	jsonRpcRequest := types.JsonRpcOnlyOneParamsRequest{
 		Jsonrpc: "2.0",
 		Id:      1,
 		Method:  createAccountMethod,
-		Params:  []interface{}{st},
+		// Params:  []interface{}{st},
+		Params: "DgAAAHNlbmRlci50ZXN0bmV0AOrmAai64SZOv9e/naX4W15pJx0GAap35wTT1T/DwcbbDwAAAAAAAAAQAAAAcmVjZWl2ZXIudGVzdG5ldNMnL7URB1cxPOu3G8jTqlEwlcasagIbKlAJlF5ywVFLAQAAAAMAAACh7czOG8LTAAAAAAAAAGQcOG03xVSFQFjoagOb4NBBqWhERnnz45LY4+52JgZhm1iQKz7qAdPByrGFDQhQ2Mfga8RlbysuQ8D8LlA6bQE=",
 	}
 	requestBody, err := json.Marshal(jsonRpcRequest)
 	if err != nil {
