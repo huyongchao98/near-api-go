@@ -169,6 +169,8 @@ func TestCreateAccountTransaction(t *testing.T) {
 
 	require.NoError(t, transactionErr, "报错了")
 
+	require.NotNil(t, finalExecutionOutcome)
+
 	_, success := finalExecutionOutcome.GetStatus()
 
 	require.True(t, success)
