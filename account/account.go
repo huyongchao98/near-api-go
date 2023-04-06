@@ -42,21 +42,21 @@ func NewAccount(config *types.Config, accountID string) *Account {
 	}
 }
 
-func (a *Account) CreateAccount(publicKey string) error {
-	var res bool
-	args := CreateAccountArgs{
-		PublicKey: publicKey,
-		AccountId: a.AccountID,
-	}
-	err := a.config.RPCClient.Call(&res, "create_account", args)
-	if err != nil {
-		return err
-	}
-	if !res {
-		return fmt.Errorf("failed to create account")
-	}
-	return nil
-}
+// func (a *Account) CreateAccount(publicKey string) error {
+// 	var res bool
+// 	args := CreateAccountArgs{
+// 		PublicKey: publicKey,
+// 		AccountId: a.AccountID,
+// 	}
+// 	err := a.config.RPCClient.Call(&res, "create_account", args)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	if !res {
+// 		return fmt.Errorf("failed to create account")
+// 	}
+// 	return nil
+// }
 
 // ViewState queries the contract state.
 func (a *Account) ViewState(ctx context.Context, opts ...ViewStateOption) (*AccountStateView, error) {

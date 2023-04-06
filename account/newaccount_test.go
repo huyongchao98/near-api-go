@@ -2,7 +2,7 @@
  * @Author: huyongchao huyongchao98@163.com
  * @Date: 2023-03-16 15:29:00
  * @LastEditors: huyongchao huyongchao98@163.com
- * @LastEditTime: 2023-03-30 10:32:12
+ * @LastEditTime: 2023-04-06 20:37:01
  * @FilePath: /NearMPCWallet/near-api-go/account/test.go
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -31,7 +31,7 @@ func TestAccount(t *testing.T) {
 	walletCreateParams := WalletCreateParams{}
 	jsonRpcRequest := types.JsonRpcRequest{
 		Jsonrpc: "2.0",
-		Id:      1,
+		Id:      "1",
 		Method:  walletCreateMethod,
 		Params:  []interface{}{walletCreateParams},
 	}

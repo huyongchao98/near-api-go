@@ -50,20 +50,20 @@ func TestIt(t *testing.T) {
 var PublicKey = "ed25519:H9k5eiU4xXS3M4z8HzKJSLaZdqGdGwBG49o7orNC4eZW"
 var accountID = "client.chainlink.testnet"
 
-func TestCreateAccount(t *testing.T) {
-	rpcClient, err := rpc.DialContext(ctx, "https://rpc.testnet.near.org")
-	require.NoError(t, err)
+// func TestCreateAccount(t *testing.T) {
+// 	rpcClient, err := rpc.DialContext(ctx, "https://rpc.testnet.near.org")
+// 	require.NoError(t, err)
 
-	config := &types.Config{
-		RPCClient: rpcClient,
-		NetworkID: "testnet",
-		// Signer:    keys,
-	}
-	a := NewAccount(config, accountID)
-	creatAccountErr := a.CreateAccount(PublicKey)
-	require.NoError(t, creatAccountErr)
+// 	config := &types.Config{
+// 		RPCClient: rpcClient,
+// 		NetworkID: "testnet",
+// 		// Signer:    keys,
+// 	}
+// 	a := NewAccount(config, accountID)
+// 	creatAccountErr := a.CreateAccount(PublicKey)
+// 	require.NoError(t, creatAccountErr)
 
-}
+// }
 
 func TestViewAccessKey(t *testing.T) {
 	a, cleanup := makeAccount(t)
@@ -107,8 +107,12 @@ func TestSignAndSendTransaction(t *testing.T) {
 }
 
 func getKeyPair() (keys.KeyPair, error) {
-
-	return keys.NewKeyPairFromRandom("ED25519")
+	keypair, err := keys.NewKeyPairFromRandom("ED25519")
+	publicKey := keypair.GetPublicKey()
+	publicKeyString, toStringErr := publicKey.ToString()
+	fmt.Println("publicKey:", publicKeyString)
+	fmt.Println("toStringErr:", toStringErr)
+	return keypair, err
 	// return keys.NewKeyPairFromString(
 	// 	"ed25519:H9k5eiU4xXS3M4z8HzKJSLaZdqGdGwBG49o7orNC4eZW",
 	// )
@@ -130,4 +134,43 @@ func makeAccount(t *testing.T) (*Account, func()) {
 	return a, func() {
 		rpcClient.Close()
 	}
+}
+
+func TestCreateAccountTransaction(t *testing.T) {
+	rpcEndpoint := "https://rpc.testnet.near.org"
+	mainAccountID := "testdafa.testnet"
+	accountID := "example-account3.testnet"
+	networkID := "testnet"
+	// _, priv, GenerateKeyErr := ed25519.GenerateKey(nil)
+
+	// assert.NoError(t, GenerateKeyErr)
+
+	// b58 := base58.Encode(priv)
+
+	keyPair, keyPairErr := keys.NewKeyPairFromString("ed25519:3G7BmuSTuo825Y1kCTyRwMm9incjuNDcf24p42pKi9PgDv3JyvPzJT4Kb88mRHR3KyPDXNu2Gsy3w8dRMAR6eKoM")
+	require.NoError(t, keyPairErr)
+
+	publicKey := keyPair.GetPublicKey()
+	publicKeyString, toStringErr := publicKey.ToString()
+	fmt.Println("publicKey:", publicKeyString)
+	fmt.Println("toStringErr:", toStringErr)
+
+	rpcClient, rpcClientErr := rpc.DialContext(ctx, rpcEndpoint)
+	require.NoError(t, rpcClientErr)
+	config := &types.Config{
+		Signer:    keyPair,
+		NetworkID: networkID,
+		RPCClient: rpcClient,
+	}
+	theMainAccount := NewAccount(config, mainAccountID)
+
+	//发起创建账号请求
+	finalExecutionOutcome, transactionErr := theMainAccount.SignAndSendTransaction(ctx, accountID, transaction.CreateAccountAction())
+
+	require.NoError(t, transactionErr, "报错了")
+
+	_, success := finalExecutionOutcome.GetStatus()
+
+	require.True(t, success)
+
 }
