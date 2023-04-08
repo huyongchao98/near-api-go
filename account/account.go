@@ -210,7 +210,7 @@ func (a *Account) SignTransaction(
 		return nil, nil, fmt.Errorf("no access key view found") // TODO: Better error message.
 	}
 	var res itypes.BlockResult
-	if err := a.config.RPCClient.CallContext(
+	if err := a.config.RPCClient.CallContextWithObjectParame(
 		ctx,
 		&res,
 		"block",
@@ -265,11 +265,12 @@ func (a *Account) SignAndSendTransaction(
 			return fmt.Errorf("serializing signed transaction: %v", err)
 		}
 		var res FinalExecutionOutcome
+		base64Msg := base64.StdEncoding.EncodeToString(bytes)
 		if err := a.config.RPCClient.CallContext(
 			ctx,
 			&res,
 			"broadcast_tx_commit",
-			base64.StdEncoding.EncodeToString(bytes),
+			base64Msg,
 		); err != nil {
 			mappedErr := util.MapRPCError(err)
 			if strings.Contains(mappedErr.Error(), "InvalidNonce") {

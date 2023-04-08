@@ -2,12 +2,14 @@ package account
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"math/big"
 
 	"testing"
 
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/near/borsh-go"
 	"github.com/stretchr/testify/require"
 	"github.com/textileio/near-api-go/keys"
 	"github.com/textileio/near-api-go/transaction"
@@ -48,22 +50,6 @@ func TestIt(t *testing.T) {
 // }
 
 var PublicKey = "ed25519:H9k5eiU4xXS3M4z8HzKJSLaZdqGdGwBG49o7orNC4eZW"
-var accountID = "client.chainlink.testnet"
-
-// func TestCreateAccount(t *testing.T) {
-// 	rpcClient, err := rpc.DialContext(ctx, "https://rpc.testnet.near.org")
-// 	require.NoError(t, err)
-
-// 	config := &types.Config{
-// 		RPCClient: rpcClient,
-// 		NetworkID: "testnet",
-// 		// Signer:    keys,
-// 	}
-// 	a := NewAccount(config, accountID)
-// 	creatAccountErr := a.CreateAccount(PublicKey)
-// 	require.NoError(t, creatAccountErr)
-
-// }
 
 func TestViewAccessKey(t *testing.T) {
 	a, cleanup := makeAccount(t)
@@ -113,9 +99,6 @@ func getKeyPair() (keys.KeyPair, error) {
 	fmt.Println("publicKey:", publicKeyString)
 	fmt.Println("toStringErr:", toStringErr)
 	return keypair, err
-	// return keys.NewKeyPairFromString(
-	// 	"ed25519:H9k5eiU4xXS3M4z8HzKJSLaZdqGdGwBG49o7orNC4eZW",
-	// )
 }
 
 func makeAccount(t *testing.T) (*Account, func()) {
@@ -141,11 +124,6 @@ func TestCreateAccountTransaction(t *testing.T) {
 	mainAccountID := "testdafa.testnet"
 	accountID := "example-account3.testnet"
 	networkID := "testnet"
-	// _, priv, GenerateKeyErr := ed25519.GenerateKey(nil)
-
-	// assert.NoError(t, GenerateKeyErr)
-
-	// b58 := base58.Encode(priv)
 
 	keyPair, keyPairErr := keys.NewKeyPairFromString("ed25519:3G7BmuSTuo825Y1kCTyRwMm9incjuNDcf24p42pKi9PgDv3JyvPzJT4Kb88mRHR3KyPDXNu2Gsy3w8dRMAR6eKoM")
 	require.NoError(t, keyPairErr)
@@ -175,4 +153,15 @@ func TestCreateAccountTransaction(t *testing.T) {
 
 	require.True(t, success)
 
+}
+
+func TestBase64(t *testing.T) {
+	str := "DgAAAHNlbmRlci50ZXN0bmV0AOrmAai64SZOv9e/naX4W15pJx0GAap35wTT1T/DwcbbDwAAAAAAAAAQAAAAcmVjZWl2ZXIudGVzdG5ldNMnL7URB1cxPOu3G8jTqlEwlcasagIbKlAJlF5ywVFLAQAAAAMAAACh7czOG8LTAAAAAAAAAGQcOG03xVSFQFjoagOb4NBBqWhERnnz45LY4+52JgZhm1iQKz7qAdPByrGFDQhQ2Mfga8RlbysuQ8D8LlA6bQE="
+	msgData, theErr := base64.StdEncoding.DecodeString(str)
+	require.NoError(t, theErr, "报错了")
+	require.NotNil(t, msgData)
+	signedTransaction := &transaction.SignedTransaction{}
+
+	deserializeErr := borsh.Deserialize(signedTransaction, msgData)
+	require.NoError(t, deserializeErr)
 }
