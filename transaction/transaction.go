@@ -17,7 +17,7 @@ var (
 
 // Signature asdf.
 type Signature struct {
-	KeyType int
+	KeyType uint8
 	Data    [64]byte
 }
 
@@ -269,7 +269,6 @@ func SignTransaction(
 	transaction Transaction,
 	signer keys.KeyPair,
 	accountID string,
-	networkID string,
 ) ([]byte, *SignedTransaction, error) {
 	message, err := borsh.Serialize(transaction)
 	if err != nil {

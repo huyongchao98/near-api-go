@@ -227,7 +227,7 @@ func (a *Account) SignTransaction(
 	nonce := accessKeyView.Nonce + 1
 
 	pk := a.config.Signer.GetPublicKey()
-	var dataArr []byte
+	dataArr := make([]byte, 32)
 	copy(dataArr[:], pk.Data)
 
 	t := transaction.Transaction{
@@ -241,7 +241,7 @@ func (a *Account) SignTransaction(
 		BlockHash:  blockHashArr,
 		Actions:    actions,
 	}
-	hash, signedTransaction, err := transaction.SignTransaction(t, a.config.Signer, a.AccountID, a.config.NetworkID)
+	hash, signedTransaction, err := transaction.SignTransaction(t, a.config.Signer, a.AccountID)
 	if err != nil {
 		return nil, nil, fmt.Errorf("signing transaction: %v", err)
 	}

@@ -69,10 +69,17 @@ func TestSignTransaction(t *testing.T) {
 	defer cleanup()
 	amt := big.NewInt(1000)
 	sendAction := transaction.TransferAction(*amt)
-	hash, signedTxn, err := a.SignTransaction(ctx, "carsonfarmer.testnet", sendAction)
+	hash, signedTxn, err := a.SignTransaction(ctx, "example-account344.testdafa.testnet", sendAction)
+
+	bytes, SerializeErr := borsh.Serialize(*signedTxn)
+	require.NoError(t, SerializeErr)
+
+	base64Msg := base64.StdEncoding.EncodeToString(bytes)
+
 	require.NoError(t, err)
 	require.NotEmpty(t, hash)
 	require.NotNil(t, signedTxn)
+	require.Equal(t, base64Msg, "")
 }
 
 func TestSignAndSendTransaction(t *testing.T) {
@@ -119,14 +126,13 @@ func makeAccount(t *testing.T) (*Account, func()) {
 	}
 }
 
-func TestCreateAccountTransaction(t *testing.T) {
+func buildAccount() *Account {
 	rpcEndpoint := "https://rpc.testnet.near.org"
 	mainAccountID := "testdafa.testnet"
-	accountID := "example-account3.testnet"
 	networkID := "testnet"
 
 	keyPair, keyPairErr := keys.NewKeyPairFromString("ed25519:3G7BmuSTuo825Y1kCTyRwMm9incjuNDcf24p42pKi9PgDv3JyvPzJT4Kb88mRHR3KyPDXNu2Gsy3w8dRMAR6eKoM")
-	require.NoError(t, keyPairErr)
+	fmt.Println(keyPairErr)
 
 	publicKey := keyPair.GetPublicKey()
 	publicKeyString, toStringErr := publicKey.ToString()
@@ -134,16 +140,62 @@ func TestCreateAccountTransaction(t *testing.T) {
 	fmt.Println("toStringErr:", toStringErr)
 
 	rpcClient, rpcClientErr := rpc.DialContext(ctx, rpcEndpoint)
-	require.NoError(t, rpcClientErr)
+	fmt.Println(rpcClientErr)
 	config := &types.Config{
 		Signer:    keyPair,
 		NetworkID: networkID,
 		RPCClient: rpcClient,
 	}
 	theMainAccount := NewAccount(config, mainAccountID)
+	return theMainAccount
+}
+
+func TestCreateAccountTransactionWithAction(t *testing.T) {
+
+	accountID := "example-221sdff2.testdafa.testnet"
+
+	theMainAccount := buildAccount()
 
 	//发起创建账号请求
 	finalExecutionOutcome, transactionErr := theMainAccount.SignAndSendTransaction(ctx, accountID, transaction.CreateAccountAction())
+
+	//可以调用AddKey的action添加publickey
+
+	require.NoError(t, transactionErr, "报错了")
+
+	require.NotNil(t, finalExecutionOutcome)
+
+	_, success := finalExecutionOutcome.GetStatus()
+
+	require.True(t, success)
+
+}
+
+func TestCreateAccountTransactionWithFunctionCall(t *testing.T) {
+
+	newAccountID := "example-account344.testnet"
+
+	theMainAccount := buildAccount()
+
+	//发起创建账号请求
+
+	newKeyPair, newKeyPairErr := keys.NewKeyPairFromRandom("ed25519")
+	require.NoError(t, newKeyPairErr)
+
+	newPublicKey := newKeyPair.GetPublicKey()
+	newPublicKeyString, newPublicKeyStringErr := newPublicKey.ToString()
+	fmt.Println("newPublicKeyString:", newPublicKeyString)
+	fmt.Println("newPublicKeyStringErr:", newPublicKeyStringErr)
+
+	functionCallOpton := transaction.FunctionCallWithArgs(CreateAccountArgs{
+		NewAccountId: newAccountID,
+		NewPublicKey: newPublicKeyString,
+	})
+
+	action, theError := transaction.FunctionCallAction("create_account", functionCallOpton)
+	require.NoError(t, theError, "报错了")
+
+	finalExecutionOutcome, transactionErr := theMainAccount.SignAndSendTransaction(ctx, "testnet", *action)
 
 	require.NoError(t, transactionErr, "报错了")
 
@@ -158,10 +210,18 @@ func TestCreateAccountTransaction(t *testing.T) {
 func TestBase64(t *testing.T) {
 	str := "DgAAAHNlbmRlci50ZXN0bmV0AOrmAai64SZOv9e/naX4W15pJx0GAap35wTT1T/DwcbbDwAAAAAAAAAQAAAAcmVjZWl2ZXIudGVzdG5ldNMnL7URB1cxPOu3G8jTqlEwlcasagIbKlAJlF5ywVFLAQAAAAMAAACh7czOG8LTAAAAAAAAAGQcOG03xVSFQFjoagOb4NBBqWhERnnz45LY4+52JgZhm1iQKz7qAdPByrGFDQhQ2Mfga8RlbysuQ8D8LlA6bQE="
 	msgData, theErr := base64.StdEncoding.DecodeString(str)
+
 	require.NoError(t, theErr, "报错了")
 	require.NotNil(t, msgData)
-	signedTransaction := &transaction.SignedTransaction{}
 
-	deserializeErr := borsh.Deserialize(signedTransaction, msgData)
-	require.NoError(t, deserializeErr)
+	msg := string(msgData)
+	require.NotNil(t, msg)
+}
+
+func TestTransgerWithAction(t *testing.T) {
+	theMainAccount := buildAccount()
+	receiveAccountID := "example-account344.testdafa.testnet"
+	finalExecutionOutcome, transactionErr := theMainAccount.SignAndSendTransaction(ctx, receiveAccountID, transaction.TransferAction(*big.NewInt(10)))
+	require.NoError(t, transactionErr, "报错了")
+	fmt.Println(finalExecutionOutcome)
 }
